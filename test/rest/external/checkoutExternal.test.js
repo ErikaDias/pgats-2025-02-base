@@ -1,6 +1,5 @@
 const request = require('supertest');
 const {expect} = require('chai');
-const User = require('../../../src/models/User');
 
 describe('Checkout Controller', () => {
     describe('POST /api/checkout', () => {
@@ -9,8 +8,8 @@ describe('Checkout Controller', () => {
             const respostaLogin = await request('http://localhost:3000')
                 .post('/api/users/login')
                 .send({
-                    email: User[1].email,
-                    password: User[1].password
+                    email: 'bob@email.com',
+                    password: '123456'
                 });
 
             token = respostaLogin.body.token;
