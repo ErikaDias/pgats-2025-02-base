@@ -1,11 +1,16 @@
 const request = require('supertest');
+const sinon = require('sinon');
 const {expect} = require('chai');
 
-describe('Checkout External', () => {
+const app = require('../../../rest/app');
+
+const checkoutController = require('../../../src/services/checkoutService');
+
+describe('Checkout Controller', () => {
     describe('POST /api/checkout', () => {
 
         beforeEach(async () => {
-            const respostaLogin = await request('http://localhost:3000')
+            const respostaLogin = await request(app)
                 .post('/api/users/login')
                 .send({
                     email: 'bob@email.com',
@@ -34,17 +39,12 @@ describe('Checkout External', () => {
                 }
             };
 
-            const response = await request('http://localhost:3000')
+            const response = await request(app)
                 .post('/api/checkout')
                 .set('Authorization', `Bearer ${token}`)
                 .send(checkoutData);
 
             expect(response.status).to.equal(200);
-            expect(response.body).to.have.property('userId', 2);
-            expect(response.body.items[0]).to.have.property('productId', checkoutData.items[0].productId);
-            expect(response.body.items[0]).to.have.property('quantity', checkoutData.items[0].quantity);
-            expect(response.body).to.have.property('freight', checkoutData.freight);
-            expect(response.body).to.have.property('paymentMethod', checkoutData.paymentMethod);
         });
 
         it('Deve retornar 200 quando o checkout for realizado com sucesso no boleto', async () => {
@@ -59,23 +59,19 @@ describe('Checkout External', () => {
                 paymentMethod: 'boleto',
             };
 
-            const response = await request('http://localhost:3000')
+            const response = await request(app)
                 .post('/api/checkout')
                 .set('Authorization', `Bearer ${token}`)
                 .send(checkoutData);
 
             expect(response.status).to.equal(200);
-                expect(response.body).to.have.property('items');
-                expect(response.body.items).to.be.an('array');
-                expect(response.body.items[0]).to.have.property('productId', 1);
-                expect(response.body.items[0]).to.have.property('quantity', 2);
         });
 
         it('Deve retornar 400 quando o checkout falhar por dados inválidos', async () => {
             const checkoutData = {
                 items: [
                     {
-                        productId: 99, // Produto inválido
+                        productId: 999, // Produto inválido
                         quantity: 2
                     }
                 ],
@@ -89,7 +85,7 @@ describe('Checkout External', () => {
                 }
             };
 
-            const response = await request('http://localhost:3000')
+            const response = await request(app)
                 .post('/api/checkout')
                 .set('Authorization', `Bearer ${token}`)
                 .send(checkoutData);
@@ -116,13 +112,14 @@ describe('Checkout External', () => {
                 }
             };
 
-            const response = await request('http://localhost:3000')
+            const response = await request(app)
                 .post('/api/checkout')
-                .set('Authorization', `Bearer ${token}a547`)
+                .set('Authorization', `Bearer ${token}invalid`)
                 .send(checkoutData);
 
             expect(response.status).to.equal(401);
-            expect(response.body).to.have.property('error', 'Token inválido');  
+            
         });
+ 
     });
 });
